@@ -51,8 +51,27 @@ class AssignEngineerSerializer(serializers.Serializer):
         return value
 
 
-class TimeEntrySerializer(serializers.ModelSerializer):
+
+
+
+class LogTimeSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeEntry
-        fields = ['id', 'project', 'user', 'time_spent', 'is_active']
-        read_only_fields = ['id', 'is_active']
+        fields = ['time_spent', 'is_active']
+
+class TimeEntrySerializerDetail(serializers.ModelSerializer):
+    project_name = serializers.CharField(source='project.name',read_only=True)
+    user_details = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = TimeEntry
+        fields = "__all__"
+
+    def get_user_details(self, obj):
+        return {
+            "email": obj.user.email,
+            "fullname": obj.user.fullname,
+            "username": obj.user.username,
+            "role": obj.user.role,
+            "image": obj.user.image,
+        }
