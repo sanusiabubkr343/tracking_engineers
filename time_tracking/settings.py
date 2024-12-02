@@ -28,7 +28,6 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 MEDIA_URL = '/time_tracker/'
 # Application definition
 
-AUTH_User_MODEL = "user.User"
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tracker',
+    'user',
     # third-party-apps
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
@@ -115,7 +115,7 @@ SIMPLE_JWT = {
 }
 
 WSGI_APPLICATION = 'time_tracking.wsgi.application'
-
+AUTH_USER_MODEL = "user.User"
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -170,7 +170,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
- #for Emails
+# for Emails
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = config("EMAIL_HOST")

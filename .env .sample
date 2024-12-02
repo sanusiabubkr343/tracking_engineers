@@ -1,0 +1,17 @@
+SECRET_KEY = "django-insecure-(f(aw5=jbiss=+k!i1=(1ek$6f^bubo)rlv1rvh@i2^%lh9k2j"
+DATABASE_URL="postgres://postgres:postgrespw@localhost:55000/trime_tracking"
+APP_NAME="MYSITE-API"
+DEBUG="True"
+DJANGO_SUPERUSER_EMAIL= 
+DJANGO_SUPERUSER_PASSWORD = 
+DJANGO_SUPERUSER_USERNAME = 
+CLOUDINARY_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+DJANGO_SETTINGS_MODULE='trime_tracking.settings'
+CLOUDINARY_URL=
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 
+EMAIL_HOST_PASSWORD = 
+EMAIL_PORT =
+EMAIL_USE_TLS =

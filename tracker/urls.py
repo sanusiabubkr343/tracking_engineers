@@ -7,7 +7,7 @@ from . import views
 app_name = "tracker"
 router = routers.DefaultRouter()
 
-router.register("projects/", viewset=views.ProjectViewSet)
+router.register("projects", viewset=views.ProjectViewSet)
 
 
 urlpatterns = [

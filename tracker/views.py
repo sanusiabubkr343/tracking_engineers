@@ -109,10 +109,10 @@ class ProjectViewSet(
         project = self.get_object()
 
         engineers = project.engineers.all()
-        data = []
+        instances = []
         for engineer in engineers:
-            time_entry = TimeEntry.objects.filter(project=project, user=engineer)
-            engineer_data=TimeEntrySerializerDetail(time_entry).data
-            data.append(engineer_data)
+            time_entry_instance = TimeEntry.objects.filter(project=project, user=engineer)
 
-        return Response(data, status=status.HTTP_200_OK)
+            instances.append(time_entry_instance)
+
+        return Response(data=TimeEntrySerializerDetail(isinstance=instances,many=True), status=status.HTTP_200_OK)
