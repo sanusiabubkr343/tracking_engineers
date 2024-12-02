@@ -29,17 +29,12 @@ class UserViewSets(
         methods=['POST'],
         detail=False,
         url_path='register-user',
-        permission_classes=[IsAdmin | IsProjectManager],
         parser_classes=[MultiPartParser],
     )
     def register_user(self, request, pk=None):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            user_instance = serializer.save()
-
-            if user_instance.role == 'engineer':
-                # send link to the engineer to fill in  his other details
-                pass
+            serializer.save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

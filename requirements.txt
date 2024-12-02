@@ -3,6 +3,8 @@ django_debug_toolbar
 djangorestframework
 djangorestframework-simplejwt
 dj-database-url
+psycopg2
+psycopg2-binary
 python-decouple
 django-cors-headers
 whitenoise
