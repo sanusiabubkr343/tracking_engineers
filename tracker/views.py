@@ -21,7 +21,12 @@ class ProjectViewSet(
 ):
     serializer_class = ProjectSerializer
     permission_classes = [IsProjectManager | IsAdmin]
-    queryset = Project.objects.all()
+    queryset = (
+        Project.objects.select_related('project_manager')
+        .prefetch_related('engineers')
+        .filter()
+        .all()
+    )
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -112,15 +117,15 @@ class ProjectViewSet(
         project = self.get_object()
 
         engineers = project.engineers.all()
-        instances = []
+        json_objects = []
         for engineer in engineers:
             try:
                 time_entry_instance = TimeEntry.objects.get(project=project, user=engineer)
-                instances.append(time_entry_instance)
+                json_objects.append(TimeEntrySerializerDetail(instance=time_entry_instance).data)
             except TimeEntry.DoesNotExist:
-                instances.append(
+                json_objects.append(
                     TimeEntrySerializerDetail(
-                        TimeEntry(
+                        instance=TimeEntry(
                             project=project,
                             user=engineer,
                             time_spent=timezone.timedelta(minutes=0),
@@ -128,11 +133,12 @@ class ProjectViewSet(
                         )
                     ).data
                 )
+        print(json_objects)
         return Response(
             data={
                 "Project_name": project.name,
                 "project_id": project.id,
-                "time_entries_detials": instances,
+                "time_entries_detials": json_objects,
             },
             status=status.HTTP_200_OK,
         )
