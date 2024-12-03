@@ -6,13 +6,19 @@ from rest_framework.decorators import action
 from user.permissions import IsAdmin, IsProjectManager
 from user.tokens import create_jwt_pair_for_user
 from .models import User
-from .serializers import UserSerializer, LoginUserSerializer
+from .serializers import (
+    UpdateUserRoleSerializer,
+    UpdateUserSerializer,
+    UserSerializer,
+    LoginUserSerializer,
+)
 from rest_framework import mixins
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
-
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 class UserViewSets(
     mixins.ListModelMixin,
@@ -22,13 +28,31 @@ class UserViewSets(
     viewsets.GenericViewSet,
 ):
     serializer_class = UserSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['role']
+    search_fields = ['email', 'username', 'fullname']
+
+    def get_serializer_class(self):
+        if self.action == 'register_user':
+            return UserSerializer
+        if self.action in ['update', 'partial_update']:
+            self.parser_classes = [MultiPartParser]
+            return UpdateUserSerializer
+        return self.serializer_class
+
+    def get_permissions(self):
+        permission_classes = self.permission_classes
+        if self.action in ['register_user', 'login_user']:
+            permission_classes = [AllowAny]
+        return [permission() for permission in permission_classes]
 
     @action(
         methods=['POST'],
         detail=False,
         url_path='register-user',
+        serializer_class=UserSerializer,
         parser_classes=[MultiPartParser],
     )
     def register_user(self, request, pk=None):
@@ -66,3 +90,19 @@ class UserViewSets(
                 data={"message": "Invalid email or password"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
+
+    @action(
+        methods=['POST'],
+        detail=True,
+        serializer_class=UpdateUserRoleSerializer,
+        url_path='update-user-role',
+        permission_classes=[IsAdmin],
+    )
+    def update_user_role(self, request, pk=None):
+        """update user role"""
+        user = self.get_object()
+        serializer = UpdateUserRoleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user.role = serializer.validated_data['role']
+        user.save()
+        return Response(data=UserSerializer(instance=user).data, status=status.HTTP_200_OK)

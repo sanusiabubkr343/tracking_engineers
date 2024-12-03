@@ -98,8 +98,8 @@ SPECTACULAR_SETTINGS = {
         "displayOperationId": True,
     },
     "UPLOADED_FILES_USE_URL": True,
-    "TITLE": "KCESI-API",
-    "DESCRIPTION": "KCESI-API",
+    "TITLE": "TRACKING-API",
+    "DESCRIPTION": "TRACKING-API",
     "VERSION": "1.0.0",
     "LICENCE": {"name": "BSD License"},
     "CONTACT": {"name": "Saheed ", "email": "saheed.a@gmail.com"},
@@ -112,6 +112,7 @@ SIMPLE_JWT = {
     "SIGNING_KEY": SECRET_KEY,
     "AUTH_HEADER_TYPES": ("Bearer",),
     # "Bearer <Token>"
+    
 }
 
 WSGI_APPLICATION = 'time_tracking.wsgi.application'

@@ -6,7 +6,9 @@ from .models import Project, TimeEntry
 
 class ProjectSerializer(serializers.ModelSerializer):
     project_manager_details = serializers.SerializerMethodField(read_only=True)
-    engineers_details = serializers.SerializerMethodField(read_only=True)
+    engineers_details = serializers.SerializerMethodField(
+        read_only=True, method_name='get_engineers_details'
+    )
 
     class Meta:
         model = Project
@@ -18,17 +20,19 @@ class ProjectSerializer(serializers.ModelSerializer):
             "fullname": obj.project_manager.fullname,
             "username": obj.project_manager.username,
             "role": obj.project_manager.role,
-            "image": obj.project_manager.image,
+            "image": obj.project_manager.image.url if obj.project_manager.image else None,
         }
 
     def get_engineers_details(self, obj):
+        if obj.engineers.all().count() == 0:
+            return []
         return [
             {
                 "email": engineer.email,
                 "fullname": engineer.fullname,
                 "username": engineer.username,
                 "role": engineer.role,
-                "image": engineer.image,
+                "image": engineer.image.url if engineer.image else None,
             }
             for engineer in obj.engineers.all()
         ]
@@ -51,27 +55,29 @@ class AssignEngineerSerializer(serializers.Serializer):
         return value
 
 
-
-
-
 class LogTimeSerializer(serializers.ModelSerializer):
+    time_spent = serializers.DurationField()
     class Meta:
         model = TimeEntry
         fields = ['time_spent', 'is_active']
 
 class TimeEntrySerializerDetail(serializers.ModelSerializer):
-    project_name = serializers.CharField(source='project.name',read_only=True)
-    user_details = serializers.SerializerMethodField(read_only=True)
+    engineers_engaged = serializers.SerializerMethodField(
+        read_only=True, method_name='get_user_details'
+    )
 
     class Meta:
         model = TimeEntry
         fields = "__all__"
 
     def get_user_details(self, obj):
+
+        if not obj.user:
+            return None
         return {
             "email": obj.user.email,
             "fullname": obj.user.fullname,
             "username": obj.user.username,
             "role": obj.user.role,
-            "image": obj.user.image,
+            "image": obj.user.image.url if obj.user.image else None,
         }

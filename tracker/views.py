@@ -26,14 +26,16 @@ class ProjectViewSet(
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateProjectSerializer
-        return ProjectSerializer
+        return self.serializer_class
 
     @action(
         methods=['POST'],
         detail=True,
-        url_path='assign-engineer'
+        url_path='assign-engineer',
+        serializer_class=AssignEngineerSerializer,
     )
-    def assign_engineer(self, request):
+    def assign_engineer(self, request, pk=None):
+        """Assign an engineer to a project"""
         serializer = AssignEngineerSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
@@ -44,12 +46,12 @@ class ProjectViewSet(
         profile_completetion_url = f"https://base_url/auth//?update_profile={user.id}"
 
         email_data = {
-                "email": user.email,
-                "full_name": user.full_name or user.username,
-                "link": profile_completetion_url,
-                "project_name": project.name,
-                "project_id": project.id,
-          }
+            "email": user.email,
+            "fullname": user.fullname or user.username,
+            "link": profile_completetion_url,
+            "project_name": project.name,
+            "project_id": project.id,
+        }
         send_profile_update_mail(email_data)
 
         return Response(
@@ -66,9 +68,9 @@ class ProjectViewSet(
         url_path='log-time',
         serializer_class=LogTimeSerializer,
         permission_classes=[IsEngineer],
-        parser_classes=[MultiPartParser],
     )
     def log_time(self, request, pk=None):
+        """Log time spent on a project by an engineer: time_spent in format( "00:30:00") HH:MM:SS"""
         project = self.get_object()
         user = request.user
         serializer = LogTimeSerializer(data=request.data)
@@ -80,13 +82,13 @@ class ProjectViewSet(
             project=project,
             user=user,
             defaults={
-                'time_spent': timezone.timedelta(minutes=int(time_spent)),
+                'time_spent': time_spent,
                 'is_active': is_active,
             },
         )
 
         if not created:
-            time_entry.time_spent += timezone.timedelta(minutes=int(time_spent))
+            time_entry.time_spent += time_spent
             time_entry.is_active = is_active
             time_entry.save()
 
@@ -106,13 +108,31 @@ class ProjectViewSet(
         serializer_class=TimeEntrySerializerDetail,
     )
     def view_project_details(self, request, pk=None):
+        """View project details with time entries"""
         project = self.get_object()
 
         engineers = project.engineers.all()
         instances = []
         for engineer in engineers:
-            time_entry_instance = TimeEntry.objects.filter(project=project, user=engineer)
-
-            instances.append(time_entry_instance)
-
-        return Response(data=TimeEntrySerializerDetail(isinstance=instances,many=True), status=status.HTTP_200_OK)
+            try:
+                time_entry_instance = TimeEntry.objects.get(project=project, user=engineer)
+                instances.append(time_entry_instance)
+            except TimeEntry.DoesNotExist:
+                instances.append(
+                    TimeEntrySerializerDetail(
+                        TimeEntry(
+                            project=project,
+                            user=engineer,
+                            time_spent=timezone.timedelta(minutes=0),
+                            is_active=False,
+                        )
+                    ).data
+                )
+        return Response(
+            data={
+                "Project_name": project.name,
+                "project_id": project.id,
+                "time_entries_detials": instances,
+            },
+            status=status.HTTP_200_OK,
+        )
